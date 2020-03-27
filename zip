@@ -1,0 +1,51 @@
+package formatter;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+class ZipUtility {
+  private static final int BUFFER_SIZE = 4096;
+
+  public void unzip(String sourcePath) throws IOException {
+
+    // Create a buffer to append all json file contents to
+    StringBuilder b = new StringBuilder();
+
+    byte[] bytesIn = new byte[BUFFER_SIZE];
+
+    ZipInputStream zipIn = new ZipInputStream(new FileInputStream(sourcePath));
+    ZipEntry entry;
+    b.append("[\n");
+
+    int read;
+    while((entry = zipIn.getNextEntry()) != null) {
+      if (!entry.isDirectory()) {
+        if (entry.getName().endsWith(".json")) {
+          while ((read = zipIn.read(bytesIn)) != -1)
+            b.append(new String(bytesIn));
+          b.append(",\n");
+        }
+      }
+      zipIn.closeEntry();
+    }
+
+    b.append("]");
+    System.out.println(b.toString());
+    // The string in b is what would be returned as response from the spring boot controller/service
+    zipIn.close();
+  }
+}
+
+public class App {
+  public static void main(String[] args) {
+    ZipUtility zu = new ZipUtility();
+    try {
+      zu.unzip("./d.zip");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
